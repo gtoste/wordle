@@ -57,12 +57,11 @@
 
 
 <div class="container"> 
-  {word}
-  <Main wordLength={wordLength}/>
+  <Main {word} {wordLength}/>
 </div>
 <style>
   .container{
-    width: 90%;
+    width: 50%;
     margin: auto;
   }
 
