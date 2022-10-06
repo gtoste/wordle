@@ -59,6 +59,7 @@
 <div class="container"> 
   <Main {word} {wordLength}/>
 </div>
+
 <style>
   .container{
     width: 50%;

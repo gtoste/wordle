@@ -1,7 +1,8 @@
 <script>
     import {isLetter} from "../helpers/isLetter";
-    import createBoard from "../helpers/createBoard";
+    import {createBoard} from "../helpers/createBoard";
     import checkIfWordExists from "../helpers/checkIfWordExists";
+    import Keyboard from "./Keyboard.svelte";
 
     export let word;
     export let wordLength;
@@ -12,16 +13,29 @@
     let index = 0;
     let possition = 0;
 
-    function onKeyDown(event)
+    async function onKeyDown(event)
     {
-        if(isLetter(event.key))
+        if(isLetter(event.key) && possition < wordLength)
         {
             words[index][possition] = event.key;
             possition++;
-            if(possition == wordLength) {
-                console.log(checkIfWordExists(words[index].join('')))
-                possition = 0; index += 1}
-            if(index > 4){console.log("end")} 
+        }else if(event.key === 'Backspace'){
+            possition = possition > 0 ? possition - 1 : 0;
+            words[index][possition] = "";
+        }else if(event.key === 'Enter')
+        {
+            if(possition == wordLength) 
+            {
+                const exists = await checkIfWordExists(words[index].join(''))
+                if(exists)
+                {
+                    possition = 0; index += 1
+                }else{
+                    console.log("NOT A WORD")
+                }
+            }else{
+                console.log("NOT ENOUGH LENTH")
+            }
         }
     }
 
@@ -45,17 +59,21 @@
     </div>
     {/each}
 </div>
+
+<Keyboard />
 <svelte:window on:keydown|preventDefault={onKeyDown} />
 
 <style>
     div{
         margin: auto;
+        padding: 0;
     }
 
     .row{
         width: 100%;
         display: inline-flex;
         margin: 0;
+        padding: 0;
     }
 
     .block{
