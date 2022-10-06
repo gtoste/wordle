@@ -4,12 +4,15 @@
   import Sidebar from "./components/Sidebar.svelte";
   import Main from "./components/Main.svelte";
 	import { onMount } from 'svelte';
+  import { SvelteToast } from '@zerodevx/svelte-toast'
 
   //settings
   let display = false;
   let wordLength = 5;
   let word = "";
-
+  const options = {
+    duration: 1000,
+    dismissable: false}
   //functions
   function show(){display = !display;}
 
@@ -54,8 +57,8 @@
 </nav>
 
 <Sidebar {display} bind:value = {wordLength}/>
-
-
+{word}
+<SvelteToast options = {options}/>
 <div class="container"> 
   <Main {word} {wordLength}/>
 </div>

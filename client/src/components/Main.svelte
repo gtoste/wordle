@@ -3,38 +3,58 @@
     import {createBoard} from "../helpers/createBoard";
     import checkIfWordExists from "../helpers/checkIfWordExists";
     import Keyboard from "./Keyboard.svelte";
+    import {toast} from '@zerodevx/svelte-toast';
+    import {compareWords} from "../helpers/engine";
 
     export let word;
     export let wordLength;
     let previousLength = wordLength;
+    let data = {
+        words : createBoard(wordLength),
+        colors : createBoard(wordLength)
+    }
+    let refresh = false;
 
-    let words = createBoard(wordLength);
-    
+    let button = "";
     let index = 0;
     let possition = 0;
 
     async function onKeyDown(event)
     {
-        if(isLetter(event.key) && possition < wordLength)
+        await enterKey(event.key);
+    }
+
+    async function enterKey(key){
+        if(isLetter(key) && possition < wordLength)
         {
-            words[index][possition] = event.key;
+            data.words[index][possition] = key.toUpperCase();
             possition++;
-        }else if(event.key === 'Backspace'){
+        }else if(key === 'Backspace'){
             possition = possition > 0 ? possition - 1 : 0;
-            words[index][possition] = "";
-        }else if(event.key === 'Enter')
+            data.words[index][possition] = "";
+        }else if(key === 'Enter')
         {
             if(possition == wordLength) 
             {
-                const exists = await checkIfWordExists(words[index].join(''))
+                const exists = await checkIfWordExists(data.words[index].join(''))
                 if(exists)
                 {
+                    const result = compareWords(word, data.words[index])
+                    result.forEach((letter, j) => {
+                        if(letter === 1)
+                        {
+                            data.colors[index][j] = "#138513";
+                        }else if (letter === 0)
+                        {
+                            data.colors[index][j] = "#e09909";
+                        }
+                    });
                     possition = 0; index += 1
                 }else{
-                    console.log("NOT A WORD")
+                    toast.push("NOT A WORD")
                 }
             }else{
-                console.log("NOT ENOUGH LENTH")
+                toast.push("TO SHORT")
             }
         }
     }
@@ -43,24 +63,26 @@
         if(wordLength != previousLength)
         {
             previousLength = wordLength;
-            words = createBoard(wordLength);       
+            data.words = createBoard(wordLength);       
         }
     }
 
+    $: {enterKey(button); button = ""};
 
+    $: {data = data; console.log(data.colors)}
 </script>
 
 <div style="width: {wordLength*50}px;">
     {#each Array(wordLength) as _,i}
     <div class="row">
         {#each Array(wordLength) as _,j}
-            <div class="block">{words[i][j]}</div>
+            <div class="block">{data.words[i][j]}</div>
         {/each}
     </div>
     {/each}
 </div>
 
-<Keyboard />
+<Keyboard bind:value={button}/>
 <svelte:window on:keydown|preventDefault={onKeyDown} />
 
 <style>

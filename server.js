@@ -34,8 +34,8 @@ app.get("/api/word/:id", (req, res, next) => {
 
 app.get("/api/check/:word", (req, res, next) => {
     var sql = "SELECT COUNT(*) FROM words WHERE name = ?";
-
-    db.all(sql, [req.params.word],(err, row) => {
+    const word = (req.params.word).toLocaleLowerCase();
+    db.all(sql, [word],(err, row) => {
         if (err) {
           res.status(400).json({"error":err.message});
           return;
