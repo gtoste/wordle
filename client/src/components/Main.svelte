@@ -2,18 +2,28 @@
     import {isLetter} from "../helpers/isLetter";
     import {createBoard} from "../helpers/createBoard";
     import checkIfWordExists from "../helpers/checkIfWordExists";
+    import { dialogs } from "svelte-dialogs";
     import Keyboard from "./Keyboard.svelte";
     import {toast} from '@zerodevx/svelte-toast';
-    import {compareWords} from "../helpers/engine";
+    import {compareWords, getRandomWord, onWordLengthChange} from "../helpers/engine";
+    import Dialog from "./Dialog.svelte";
+    import { onMount } from 'svelte';
 
-    export let word;
     export let wordLength;
+
+    let word = "";
+
+    onMount(async () => {
+      word = await getRandomWord(wordLength);
+	});
+
+    const correct = "#138513";
+    const close = "#e09909"
+
     let previousLength = wordLength;
-    let data = {
-        words : createBoard(wordLength),
-        colors : createBoard(wordLength)
-    }
-    let refresh = false;
+
+    let words = createBoard(wordLength)
+    let colors = createBoard(wordLength)
 
     let button = "";
     let index = 0;
@@ -27,28 +37,36 @@
     async function enterKey(key){
         if(isLetter(key) && possition < wordLength)
         {
-            data.words[index][possition] = key.toUpperCase();
+            words[index][possition] = key.toUpperCase();
             possition++;
         }else if(key === 'Backspace'){
             possition = possition > 0 ? possition - 1 : 0;
-            data.words[index][possition] = "";
+            words[index][possition] = "";
         }else if(key === 'Enter')
         {
             if(possition == wordLength) 
             {
-                const exists = await checkIfWordExists(data.words[index].join(''))
+                const exists = await checkIfWordExists(words[index].join(''))
+                // const exists = true;
                 if(exists)
                 {
-                    const result = compareWords(word, data.words[index])
-                    result.forEach((letter, j) => {
-                        if(letter === 1)
+                    const result = compareWords(word, words[index])
+                    for(let i = 0; i < result.length; i++)
+                    {
+                        if(result[i] === 1)
                         {
-                            data.colors[index][j] = "#138513";
-                        }else if (letter === 0)
+                            colors[index][i] = correct;
+                        }else if (result[i] === 0)
                         {
-                            data.colors[index][j] = "#e09909";
+                            colors[index][i] = close;
                         }
-                    });
+                    }
+                    
+                    if (word.toUpperCase() === words[index].join("").toUpperCase())
+                    {
+                        dialogs.modal(Dialog, {text: `You won in ${index + 1} attemps`, reset : reset})
+                    }
+
                     possition = 0; index += 1
                 }else{
                     toast.push("NOT A WORD")
@@ -59,24 +77,35 @@
         }
     }
 
+    function reset(){
+        onWordLengthChange(wordLength).then(response => {word = response})
+        words = createBoard(wordLength);
+        colors = createBoard(wordLength);
+        index = 0;
+        possition = 0;
+    }
+
     $: { 
         if(wordLength != previousLength)
         {
             previousLength = wordLength;
-            data.words = createBoard(wordLength);       
+           
+            reset()
         }
     }
 
     $: {enterKey(button); button = ""};
-
-    $: {data = data; console.log(data.colors)}
 </script>
 
+
+{word}
 <div style="width: {wordLength*50}px;">
     {#each Array(wordLength) as _,i}
     <div class="row">
         {#each Array(wordLength) as _,j}
-            <div class="block">{data.words[i][j]}</div>
+            <div class="block"
+            style:background={colors[i][j]}
+            >{words[i][j]}</div>
         {/each}
     </div>
     {/each}

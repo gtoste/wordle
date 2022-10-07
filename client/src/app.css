@@ -8,6 +8,10 @@
   background-color: rgb(18, 18, 19);
 }
 
+.dialog__container{
+  background-color: #2e2e2e !important;
+}
+
 body{
   margin: 0;
   padding: 0;

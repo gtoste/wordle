@@ -3,52 +3,18 @@
   import sidebar from "./assets/sidebar.png";
   import Sidebar from "./components/Sidebar.svelte";
   import Main from "./components/Main.svelte";
-	import { onMount } from 'svelte';
   import { SvelteToast } from '@zerodevx/svelte-toast'
 
   //settings
   let display = false;
   let wordLength = 5;
-  let word = "";
   const options = {
     duration: 1000,
     dismissable: false}
   //functions
   function show(){display = !display;}
 
-  async function getRandomWord(wordLength)
-    {
-        let url = "http://localhost:8000/api/word/" + wordLength;
-        const res = await fetch(url);
-        const word = await res.json();
-        if(res.ok)
-        {
-            return word.name;
-        }else{
-            throw new Error(word);
-        }
-    }
 
-    async function onWordLengthChange(len)
-    {
-      const getWord = async()=>{
-        let word = await getRandomWord(len);
-        return word;
-      }
-
-      return await getWord();
-    }
-
-    onMount(async () => {
-      word = await getRandomWord(wordLength);
-	  });
-
-
-  $: 
-  {
-    wordLength = wordLength;
-    onWordLengthChange(wordLength).then(response => {word = response})
-  }
 </script>
 
 <nav class="header">
@@ -57,10 +23,9 @@
 </nav>
 
 <Sidebar {display} bind:value = {wordLength}/>
-{word}
 <SvelteToast options = {options}/>
 <div class="container"> 
-  <Main {word} {wordLength}/>
+  <Main  {wordLength}/>
 </div>
 
 <style>
