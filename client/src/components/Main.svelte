@@ -8,8 +8,10 @@
     import {compareWords, getRandomWord, onWordLengthChange} from "../helpers/engine";
     import Dialog from "./Dialog.svelte";
     import { onMount } from 'svelte';
+    import getRandomInt from "../helpers/getRandomInt";
 
     export let wordLength;
+    
 
     let word = "";
 
@@ -21,6 +23,12 @@
     const close = "#e09909"
 
     let previousLength = wordLength;
+
+    //keyboard colors
+    let greens = []
+    let oranges = []
+    let grays = []
+    let can_roll = true;
 
     let words = createBoard(wordLength)
     let colors = createBoard(wordLength)
@@ -53,12 +61,17 @@
                     const result = compareWords(word, words[index])
                     for(let i = 0; i < result.length; i++)
                     {
+                        let letter = words[index][i];
                         if(result[i] === 1)
                         {
                             colors[index][i] = correct;
+                            if (!greens.includes(letter)) greens = [...greens, letter]
                         }else if (result[i] === 0)
                         {
                             colors[index][i] = close;
+                            if (!oranges.includes(letter) && !greens.includes(letter)) oranges = [...oranges, letter]
+                        }else{
+                            if (!grays.includes(letter)) grays = [...grays, letter]
                         }
                     }
                     
@@ -76,6 +89,21 @@
             }
         }
     }
+    let hints;
+
+    async function hint()
+    {
+        fetch("https://api.dictionaryapi.dev/api/v2/entries/en/" + word).then(res => res.json()).then(data =>{
+            try{
+                hints.innerText = data[0].meanings[0].definitions[0].definition;
+            }catch
+            {
+                hints.innerText = data.message;
+            }
+            
+        });
+        can_roll = false;
+    }
 
     function reset(){
         onWordLengthChange(wordLength).then(response => {word = response})
@@ -83,6 +111,10 @@
         colors = createBoard(wordLength);
         index = 0;
         possition = 0;
+        oranges = []
+        greens = []
+        grays = []
+        hints.innerText = ""
     }
 
     $: { 
@@ -97,8 +129,10 @@
     $: {enterKey(button); button = ""};
 </script>
 
+<button on:click={hint}>HINT</button>
+<div bind:this={hints}>
 
-{word}
+</div>
 <div style="width: {wordLength*50}px;">
     {#each Array(wordLength) as _,i}
     <div class="row">
@@ -111,10 +145,14 @@
     {/each}
 </div>
 
-<Keyboard bind:value={button}/>
+<Keyboard bind:value={button} bind:greens = {greens} bind:oranges = {oranges} bind:grays = {grays}/>
 <svelte:window on:keydown|preventDefault={onKeyDown} />
 
 <style>
+    button{
+        padding: 10px;
+    }
+
     div{
         margin: auto;
         padding: 0;
@@ -127,11 +165,20 @@
         padding: 0;
     }
 
-    .block{
+    :global(body.dark-mode) .block{
         margin: 0;
         width: 50px;
         height: 50px;
         outline: 1px solid #e2e2e2;
+        text-align: center;
+        line-height: 50px;
+    }
+
+    .block{
+        margin: 0;
+        width: 50px;
+        height: 50px;
+        outline: 1px solid black;
         text-align: center;
         line-height: 50px;
     }
