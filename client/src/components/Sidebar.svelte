@@ -1,7 +1,7 @@
 <script>
     export let display = false;
     export let value;
-
+    export let contrast;
 
     function toggle() {
 	window.document.body.classList.toggle('dark-mode')
@@ -20,8 +20,12 @@
         <option value={9}>9</option>
       </select>
     <br/>
-      <label for="theme">Lightmode</label>
       <button on:click={toggle}>Change theme</button>
+    <br/>
+      <label for="contrast">Contrast</label>
+      <input name="contrast" type="range" min="0" max="2" bind:value={contrast}/>
+
+      <br/>
 </div>
 
 <style>

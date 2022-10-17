@@ -2,16 +2,17 @@
     import {isLetter} from "../helpers/isLetter";
     import {createBoard} from "../helpers/createBoard";
     import checkIfWordExists from "../helpers/checkIfWordExists";
+    // @ts-ignore
     import { dialogs } from "svelte-dialogs";
     import Keyboard from "./Keyboard.svelte";
     import {toast} from '@zerodevx/svelte-toast';
     import {compareWords, getRandomWord, onWordLengthChange} from "../helpers/engine";
     import Dialog from "./Dialog.svelte";
     import { onMount } from 'svelte';
-    import getRandomInt from "../helpers/getRandomInt";
+
 
     export let wordLength;
-    
+    export let contrast;
 
     let word = "";
 
@@ -19,8 +20,26 @@
       word = await getRandomWord(wordLength);
 	});
 
-    const correct = "#138513";
-    const close = "#e09909"
+    var correct = "#138513";
+    var close = "#e09909";
+   
+    $: {
+        contrast = contrast;
+        if(contrast == 0)
+        {
+            correct = "#4d874d";
+            close = "#f0d297";
+        }
+        else if(contrast == 2)
+        {
+            correct = "#00ff00";
+            close = "#ffa900";
+        }else{
+            correct = "#138513";
+            close = "#e09909";
+        }
+    
+    }
 
     let previousLength = wordLength;
 
@@ -31,8 +50,8 @@
     let can_roll = true;
 
     let words = createBoard(wordLength)
-    let colors = createBoard(wordLength)
-
+    let colors = Array(wordLength).fill(0).map(() => Array(wordLength).fill(-1))
+    console.log(colors)
     let button = "";
     let index = 0;
     let possition = 0;
@@ -55,7 +74,6 @@
             if(possition == wordLength) 
             {
                 const exists = await checkIfWordExists(words[index].join(''))
-                // const exists = true;
                 if(exists)
                 {
                     const result = compareWords(word, words[index])
@@ -64,11 +82,11 @@
                         let letter = words[index][i];
                         if(result[i] === 1)
                         {
-                            colors[index][i] = correct;
+                            colors[index][i] = 1;
                             if (!greens.includes(letter)) greens = [...greens, letter]
                         }else if (result[i] === 0)
                         {
-                            colors[index][i] = close;
+                            colors[index][i] = 0;
                             if (!oranges.includes(letter) && !greens.includes(letter)) oranges = [...oranges, letter]
                         }else{
                             if (!grays.includes(letter)) grays = [...grays, letter]
@@ -108,7 +126,7 @@
     function reset(){
         onWordLengthChange(wordLength).then(response => {word = response})
         words = createBoard(wordLength);
-        colors = createBoard(wordLength);
+        colors = Array(wordLength).fill(-1).map(() => Array(wordLength))
         index = 0;
         possition = 0;
         oranges = []
@@ -117,7 +135,7 @@
         hints.innerText = ""
     }
 
-    $: { 
+    $: {
         if(wordLength != previousLength)
         {
             previousLength = wordLength;
@@ -138,7 +156,7 @@
     <div class="row">
         {#each Array(wordLength) as _,j}
             <div class="block"
-            style:background={colors[i][j]}
+            style:background={colors[i][j] === -1 ? "" : colors[i][j] === 1 ? correct : close}
             >{words[i][j]}</div>
         {/each}
     </div>

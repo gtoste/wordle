@@ -8,6 +8,8 @@
   //settings
   let display = false;
   let wordLength = 5;
+  let contrast;
+
   const options = {
     duration: 1000,
     dismissable: false}
@@ -23,10 +25,10 @@
   <h1>WORDLE</h1>
 </nav>
 
-<Sidebar {display} bind:value = {wordLength}/>
+<Sidebar {display} bind:value = {wordLength} bind:contrast={contrast}/>
 <SvelteToast options = {options}/>
 <div class="container"> 
-  <Main  {wordLength}/>
+  <Main  {wordLength} {contrast}/>
 </div>
 
 <style>
